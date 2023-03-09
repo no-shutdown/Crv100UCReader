@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>身份证录入</h1><br>
+    <div id="message"></div>
+    <div>
+        <button id="OcrRecognition" onclick="OcrRecognition()">连接服务</button>
+        <button id="ReadIDCard" onclick=" reconnectDevice()">重连设备</button>
+    </div>
+
+    <table border="0" width="100%" cellpadding="0" cellspacing="10">
+        <tr>
+            <td align="right">日志：</td>
+            <td><input type="text" id="partyLog" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">姓名：</td>
+            <td><input type="text" id="partyName" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">身份证号：</td>
+            <td><input type="text" id="certNumber" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">性别：</td>
+            <td><input type="text" id="gender" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">出生日期：</td>
+            <td><input type="text" id="bornDay" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">民族：</td>
+            <td><input type="text" id="nation" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">住址：</td>
+            <td><input type="text" id="certAddress" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+        <tr>
+            <td align="right">签发机关：</td>
+            <td><input type="text" id="certOrg" size="49" style="width:400px;" readonly="readonly"></td>
+        </tr>
+    </table>
+</body>
+<script type="text/javascript">
+    let websockets;
+    let isconncet = false;
+    //创建一个数组对象用于存放当前的连接的状态，以便在页面上实时展示出来当前的状态
+    let statusArr = [
+        { state: 0, value: '正在连接' },
+        { state: 1, value: '已建立连接' },
+        { state: 2, value: '正在关闭连接' },
+        { state: 3, value: '已关闭连接' },
+    ]
+    /**
+    *   建立连接
+    *
+    */
+    function OcrRecognition() {
+        if (!isconncet) {
+            // 1. 创建websockets对象，参数为服务器websockets地址
+            var url = "ws:127.0.0.1:7415"
+            websockets = new WebSocket(url, ["tokenValue"]);
+
+            // 2.监听websocket的状态变化，接收的信息，关闭时的状态
+            websockets.onopen = (event) => socketChange();
+            //监听接收消息的情况
+            websockets.onmessage = (res) => {
+                if (res.data == "failed to obtain ID card information") {
+                    document.querySelector("#message").innerHTML += `<p>接收数据: ${res.data}</p>`
+                    return;
+                }
+                var alldata = res.data.split("|");
+                console.log(alldata.length);
+                if (alldata.length >= 7) {
+                    document.getElementById("partyLog").value = "读卡成功";
+                    document.getElementById("partyName").value = alldata[0];
+                    document.getElementById("certNumber").value = alldata[1];
+                    document.getElementById("gender").value = alldata[2];
+                    document.getElementById("bornDay").value = alldata[3];
+                    document.getElementById("nation").value = alldata[4];
+                    document.getElementById("certAddress").value = alldata[5];
+                    document.getElementById("certOrg").value = alldata[6];
+                }
+                else {
+                    document.getElementById("partyLog").value = res.data;
+                }
+            }
+
+            //监听关闭时的状态变化
+            websockets.onclose = (event) => socketChange();
+
+        }
+        else {
+            closeConnect();
+            document.getElementById("OcrRecognition").innerHTML = "连接服务";
+        }
+    }
+    function reconnectDevice() {
+        if (!isconncet) {
+            document.getElementById("partyLog").value = "未连接服务";
+        } else {
+            clear();
+            websockets.send("reconnect device");
+        }
+    }
+    /**
+    *   socket状态变化
+    *
+    */
+    function socketChange() {
+        let state = websockets.readyState;
+        let val = statusArr.map((item) => {
+            if (item.state == state) {
+                return item.value
+            }
+        });
+
+        //实时显示状态的变化
+        document.getElementById("partyLog").value = val;
+        //读身份证
+        if (1 == state) {
+            isconncet = true;
+            document.getElementById("OcrRecognition").innerHTML = "断开服务";
+        }
+        if (3 == state) {
+            isconncet = false;
+        }
+    }
+    /**
+    *   关闭连接
+    *
+    */
+    function closeConnect() {
+        websockets.close();
+    }
+    /**
+    *   关闭连接
+    *
+    */
+    function clear() {
+        document.getElementById("partyLog").value = "";
+        document.getElementById("partyName").value = "";
+        document.getElementById("certNumber").value = "";
+        document.getElementById("gender").value = "";
+        document.getElementById("bornDay").value = "";
+        document.getElementById("nation").value = "";
+        document.getElementById("certAddress").value = "";
+        document.getElementById("certOrg").value = "";
+    }
+
+</script>
+
+</html>

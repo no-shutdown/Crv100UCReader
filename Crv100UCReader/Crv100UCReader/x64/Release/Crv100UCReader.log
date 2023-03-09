@@ -1,0 +1,8 @@
+﻿  DeviceCtl.cpp
+E:\身份证读卡_华视CVR100UC读卡软件V3.2\开发包\开发\Crv100UCReader\Crv100UCReader\DeviceCtl.cpp(98,31): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  正在生成代码
+  68 of 5729 functions ( 1.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  Crv100UCReader.vcxproj -> E:\身份证读卡_华视CVR100UC读卡软件V3.2\开发包\开发\Crv100UCReader\x64\Release\Crv100UCReader.exe
